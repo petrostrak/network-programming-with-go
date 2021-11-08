@@ -1,4 +1,4 @@
-package tcpserver_test
+package acceptingconnections_test
 
 import (
 	"net"
