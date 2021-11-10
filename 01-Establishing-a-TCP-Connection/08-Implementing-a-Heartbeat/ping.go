@@ -20,6 +20,10 @@ func Pinger(ctx context.Context, w io.Writer, reset <-chan time.Duration) {
 	default:
 	}
 
+	if interval <= 0 {
+		interval = defaultPingInterval
+	}
+
 	timer := time.NewTimer(interval)
 	defer func() {
 		if !timer.Stop() {
