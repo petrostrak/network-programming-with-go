@@ -1,6 +1,7 @@
 package dynamicallyallocatingbuffersize
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -143,4 +144,34 @@ func (m *String) ReadFrom(r io.Reader) (int64, error) {
 	*m = String(buf)
 
 	return n + int64(o), err
+}
+
+// decode reads arbitrary data from a network connection and uses it to
+// constitute one of the types (BinaryType or StringType).
+func decode(r io.Reader) (Payload, error) {
+	var typ uint8
+
+	// We must first read a byte from the reader to determine the type.
+	err := binary.Read(r, binary.BigEndian, &typ)
+	if err != nil {
+		return nil, err
+	}
+
+	var payload Payload
+
+	switch typ {
+	case BinaryType:
+		payload = new(Binary)
+	case StringType:
+		payload = new(String)
+	default:
+		return nil, errors.New("unknown type")
+	}
+
+	_, err = payload.ReadFrom(io.MultiReader(bytes.NewReader([]byte{typ}), r))
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
 }
