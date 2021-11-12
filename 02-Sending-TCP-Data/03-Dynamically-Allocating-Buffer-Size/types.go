@@ -50,3 +50,38 @@ func (m Binary) WriteTo(w io.Writer) (int64, error) {
 
 	return n + int64(o), err
 }
+
+func (m *Binary) ReadFrom(r io.Reader) (int64, error) {
+	var typ uint8
+
+	// Reads 1 byte from the reader into the typ variable.
+	err := binary.Read(r, binary.BigEndian, &typ)
+	if err != nil {
+		return 0, err
+	}
+
+	var n int64 = 1
+
+	// It verifies that the type is BinaryType before proceeding.
+	if typ != BinaryType {
+		return n, errors.New("invalid Binary")
+	}
+
+	var size uint32
+
+	// Reads the next 4 bytes into the size variable.
+	err = binary.Read(r, binary.BigEndian, &size) // 4-byte size
+	if err != nil {
+		return n, err
+	}
+
+	n += 4
+	if size > MaxPayloadSize {
+		return n, ErrMaxPayloadSize
+	}
+
+	*m = make([]byte, size)
+	o, err := r.Read(*m) // payload
+
+	return n + int64(o), err
+}
