@@ -85,3 +85,31 @@ func (m *Binary) ReadFrom(r io.Reader) (int64, error) {
 
 	return n + int64(o), err
 }
+
+type String string
+
+func (m String) Bytes() []byte  { return []byte(m) }
+func (m String) String() string { return string(m) }
+
+// WriteTo is like Binary's WriteTo except the first byte written is the
+// StringType and it casts the String to a byte slice before writing it
+// to the writer.
+func (m String) WriteTo(w io.Writer) (int64, error) {
+	err := binary.Write(w, binary.BigEndian, StringType) // 1-byte type
+	if err != nil {
+		return 0, err
+	}
+
+	var n int64 = 1
+
+	err = binary.Write(w, binary.BigEndian, uint32(len(m))) // 4-byte size
+	if err != nil {
+		return n, err
+	}
+
+	n += 4
+
+	o, err := w.Write([]byte(m)) // payload
+
+	return n + int64(o), err
+}
