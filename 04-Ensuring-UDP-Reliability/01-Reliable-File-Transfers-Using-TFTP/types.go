@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"io"
 	"strings"
 )
 
@@ -139,4 +140,35 @@ func (q *ReadReq) UnmarshalBinary(p []byte) error {
 	}
 
 	return nil
+}
+
+// The Data struct keeps track of the current block number and the data source.
+type Data struct {
+	Block   uint16
+	Payload io.Reader
+}
+
+func (d *Data) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	b.Grow(DatagramSize)
+
+	d.Block++ // block numbers increment from 1.
+
+	err := binary.Write(b, binary.BigEndian, OpData) // write operation code
+	if err != nil {
+		return nil, err
+	}
+
+	err = binary.Write(b, binary.BigEndian, d.Block) // write block number
+	if err != nil {
+		return nil, err
+	}
+
+	// write up to BlockSize worth of bytes
+	_, err = io.CopyN(b, d.Payload, BlockSize)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
 }
