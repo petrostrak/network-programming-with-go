@@ -172,3 +172,28 @@ func (d *Data) MarshalBinary() ([]byte, error) {
 
 	return b.Bytes(), nil
 }
+
+func (d *Data) UnmarshalBinary(p []byte) error {
+
+	// Determine whether the packet size is within the expected bounds
+	// making it worth reading the remaining bytes.
+	if l := len(p); l < 4 || l > DatagramSize {
+		return errors.New("invalid DATA")
+	}
+
+	var code OpCode
+
+	err := binary.Read(bytes.NewReader(p[:2]), binary.BigEndian, &code)
+	if err != nil || code != OpData {
+		return errors.New("invalid DATA")
+	}
+
+	err = binary.Read(bytes.NewReader(p[:4]), binary.BigEndian, &d.Block)
+	if err != nil {
+		return errors.New("invalid DATA")
+	}
+
+	d.Payload = bytes.NewBuffer(p[4:])
+
+	return nil
+}
