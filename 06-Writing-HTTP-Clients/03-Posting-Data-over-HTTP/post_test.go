@@ -1,9 +1,11 @@
 package postingdataoverhttp
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -34,4 +36,36 @@ func handlePostUser(t *testing.T) func(http.ResponseWriter, *http.Request) {
 
 		w.WriteHeader(http.StatusAccepted)
 	}
+}
+
+func TestPostUser(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(handlePostUser(t)))
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("expected status %d; actual status %d", http.StatusMethodNotAllowed, resp.StatusCode)
+	}
+
+	buf := new(bytes.Buffer)
+	u := User{"Petros", "Trak"}
+	err = json.NewEncoder(buf).Encode(&u)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err = http.Post(ts.URL, "application/json", buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusAccepted {
+		t.Fatalf("expected status %d; actual status %d", http.StatusAccepted, resp.StatusCode)
+	}
+
+	_ = resp.Body.Close()
 }
