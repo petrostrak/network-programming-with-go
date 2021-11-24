@@ -14,6 +14,7 @@ import (
 
 func TestEchoServerTLS(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	serverAddress := "localhost:3443"
 	maxIdle := time.Second
