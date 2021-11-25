@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework"
@@ -98,6 +99,26 @@ func add(s string) error {
 			})
 		}
 	}
+
+	return flush(chores)
+}
+
+func complete(s string) error {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
+
+	chores, err := load()
+	if err != nil {
+		return err
+	}
+
+	if i < 1 || i > len(chores) {
+		return fmt.Errorf("chore %d not found", i)
+	}
+
+	chores[i-1].Complete = true
 
 	return flush(chores)
 }
