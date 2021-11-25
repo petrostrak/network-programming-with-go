@@ -3,6 +3,7 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -124,5 +125,23 @@ func complete(s string) error {
 }
 
 func main() {
+	flag.Parse()
 
+	var err error
+
+	switch strings.ToLower(flag.Arg(0)) {
+	case "add":
+		err = add(strings.Join(flag.Args()[1:], " "))
+	case "complete":
+		err = complete(flag.Arg(1))
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = list()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
