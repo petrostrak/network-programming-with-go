@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework"
 	storage "github.com/petrostrak/network-programming-with-go/09-Data-Serialization/json"
@@ -47,7 +48,7 @@ func load() ([]*housework.Chore, error) {
 	return storage.Load(df)
 }
 
-func Flush(chores []*housework.Chore) error {
+func flush(chores []*housework.Chore) error {
 	df, err := os.Create(datafile)
 	if err != nil {
 		return err
@@ -82,6 +83,23 @@ func list() error {
 	}
 
 	return nil
+}
+
+func add(s string) error {
+	chores, err := load()
+	if err != nil {
+		return err
+	}
+
+	for _, chore := range strings.Split(s, ",") {
+		if desc := strings.TrimSpace(chore); desc != "" {
+			chores = append(chores, &housework.Chore{
+				Description: desc,
+			})
+		}
+	}
+
+	return flush(chores)
 }
 
 func main() {
