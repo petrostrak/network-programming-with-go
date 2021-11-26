@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package housework;
+
+option go_package = "github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework/v1/housework";
+
+message Chore {
+    bool complete = 1;
+    string description = 2;
+}
+
+message Chores {
+    repeated Chore chores = 1;
+}
