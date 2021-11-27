@@ -1,6 +1,10 @@
 syntax = "proto3";
 
 // protoc --go_out=. --go_opt=paths=source_relative housework/v1/housework.proto
+//
+// go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
+// go get -u google.golang.org/grpc
+// protoc --go_out=plugins=grpc:. --go_opt=paths=source_relative housework/v1/housework.proto
 package housework;
 
 option go_package = "github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework/v1/housework";
@@ -12,4 +16,21 @@ message Chore {
 
 message Chores {
     repeated Chore chores = 1;
+}
+
+message CompleteRequest {
+    int32 chore_number = 1;
+}
+
+message Response {
+    string message = 1;
+}
+
+message Empty {}
+
+// protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative housework/v1/housework.proto
+service RobotMaid {
+    rpc Add (Chores) returns (Response);
+    rpc Complete (CompleteRequest) returns (Response);
+    rpc List (Empty) returns (Chores);
 }
