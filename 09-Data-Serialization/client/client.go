@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework/v1"
 )
@@ -51,4 +52,23 @@ func list(ctx context.Context, client housework.RobotMaidClient) error {
 	}
 
 	return nil
+}
+
+func add(ctx context.Context, client housework.RobotMaidClient, s string) error {
+	chores := new(housework.Chores)
+
+	for _, chore := range strings.Split(s, ",") {
+		if desc := strings.TrimSpace(chore); desc != "" {
+			chores.Chores = append(chores.Chores, &housework.Chore{
+				Description: desc,
+			})
+		}
+	}
+
+	var err error
+	if len(chores.Chores) > 0 {
+		_, err = client.Add(ctx, chores)
+	}
+
+	return err
 }
