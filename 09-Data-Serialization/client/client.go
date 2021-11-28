@@ -1,10 +1,13 @@
 package client
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework/v1"
 )
 
 var (
@@ -25,4 +28,27 @@ Flags:
 `, filepath.Base(os.Args[0]))
 		flag.PrintDefaults()
 	}
+}
+
+func list(ctx context.Context, client housework.RobotMaidClient) error {
+	chores, err := client.List(ctx, new(housework.Empty))
+	if err != nil {
+		return err
+	}
+
+	if len(chores.Chores) == 0 {
+		fmt.Println("You have nothing to do!")
+		return err
+	}
+
+	fmt.Println("#\t[X]\tDescription")
+	for i, chore := range chores.Chores {
+		c := " "
+		if chore.Complete {
+			c = "X"
+		}
+		fmt.Printf("%d\t[%s]\t%s\n", i+1, c, chore.Description)
+	}
+
+	return nil
 }
