@@ -2,14 +2,20 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework/v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -81,4 +87,53 @@ func complete(ctx context.Context, client housework.RobotMaidClient, s string) e
 	}
 
 	return err
+}
+
+func main() {
+	flag.Parse()
+
+	caCert, err := ioutil.ReadFile(caCertFn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM(caCert); !ok {
+		log.Fatal("failed to add certificate to pool")
+	}
+
+	conn, err := grpc.Dial(
+		addr,
+		grpc.WithTransportCredentials(
+			credentials.NewTLS(
+				&tls.Config{
+					CurvePreferences: []tls.CurveID{tls.CurveP256},
+					MinVersion:       tls.VersionTLS12,
+					RootCAs:          certPool,
+				},
+			),
+		),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rosie := housework.NewRobotMaidClient(conn)
+	ctx := context.Background()
+
+	switch strings.ToLower(flag.Arg(0)) {
+	case "add":
+		err = add(ctx, rosie, strings.Join(flag.Args()[1:], " "))
+	case "complete":
+		err = complete(ctx, rosie, flag.Arg(1))
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = list(ctx, rosie)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
