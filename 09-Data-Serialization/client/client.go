@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/petrostrak/network-programming-with-go/09-Data-Serialization/housework/v1"
@@ -68,6 +69,15 @@ func add(ctx context.Context, client housework.RobotMaidClient, s string) error 
 	var err error
 	if len(chores.Chores) > 0 {
 		_, err = client.Add(ctx, chores)
+	}
+
+	return err
+}
+
+func complete(ctx context.Context, client housework.RobotMaidClient, s string) error {
+	i, err := strconv.Atoi(s)
+	if err == nil {
+		_, err = client.Complete(ctx, &housework.CompleteRequest{ChoreNumber: int32(i)})
 	}
 
 	return err
