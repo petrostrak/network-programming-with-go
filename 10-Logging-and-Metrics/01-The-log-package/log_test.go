@@ -23,3 +23,16 @@ func Example_logMultiWriter() {
 
 	fmt.Print("\nlog file contents:\n", logFile.String())
 }
+
+func Example_logLevels() {
+	lDebug := log.New(os.Stdout, "DEBUG:", log.Lshortfile)
+	logFile := new(bytes.Buffer)
+	w := SustainedMultiWriter(logFile, lDebug.Writer())
+	lError := log.New(w, "ERROR:", log.Lshortfile)
+
+	fmt.Println("standard output:")
+	lError.Print("cannot communicate with the databse")
+	lDebug.Print("you cannot hum while holding your nose")
+
+	fmt.Print("\nlog file contents:\n", logFile.String())
+}
